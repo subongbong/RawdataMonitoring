@@ -29,9 +29,8 @@ class DataShare:
         self.list_mem_number = []   ##
         self.number = 0             ##
 
-        self.tt=[]
-
         self.result=[]
+        self.data = []
 
         self.fig = plt.figure()
         self.ax1 = self.fig.add_subplot(3, 1, 1)
@@ -68,12 +67,6 @@ class DataShare:
         with open(file_name, 'wb') as f:
             print('{}_list_mem save done'.format(file_name))
             pickle.dump(self.list_mem, f)
-    # 테스트용
-    def test(self):
-        a=self.mem['ZINST65']['Val'] + self.mem['UAVLEG1']['Val']
-        self.tt.append(a)
-        print(self.tt)
-
 
     # (sub) 1.
     def animate(self,i):
@@ -83,7 +76,11 @@ class DataShare:
         self.list_mem_number.append(self.number)
 
         #self.test()
-        self.P_Tcold()
+        self.RCS_PTcold()
+        self.Detect()
+        self.Diagnosis()
+        self.Suggest()
+        self.text()
         self.number += 1
 
         # 3. 이전의 그렸던 그래프를 지우는거야.
@@ -145,17 +142,68 @@ class DataShare:
                 self.mem[temp_[0]] = {'Sig': sig, 'Val': 0, 'Num': idx}
                 self.list_mem[temp_[0]] = {'Sig': sig, 'Val': [], 'Num': idx}
                 idx += 1
-    def P_Tcold(self):
+    def RCS_PTcold(self):
+        subdata=[]
 
-        PP= self.mem['ZINST65']['Val']
-        T1 = self.mem['UCOLEG1']['Val']
+        Pressure = self.mem['ZINST65']['Val']
+        subdata.append(self.mem['ZINST65']['Val'])
+        Temp_cold= self.mem['UCOLEG1']['Val']
+        subdata.append(self.mem['UCOLEG1']['Val'])
 
-        if 154.7 < PP <  161.6 and 286.7 < T1 < 293.3:
+        if 154.7 < Pressure <  161.6 and 286.7 < Temp_cold < 293.3:
           self.result.append(1)
+          self.label = '만족'
+          return subdata.append(1), subdata.append('RCS_PTcold'), self.data.append(subdata)
         else :
           self.result.append(0)
+          self.label = '불만족'
+          return subdata.append(0), subdata.append('RCS_PTcold'), self.data.append(subdata)
 
-        print(self.result)
+    def write(self):
+        print(self.data)
+
+    def Detect(self):
+        print(self.data[-1][3])
+        print(self.data[-1][2])
+        if self.data[-1][2] ==0 and self.data[-1][3] == 'RCS_PTcold':
+            self.Detect_bin = 'LCO 3.4.1'
+        else :
+            print('??')
+
+    def Diagnosis(self):
+
+        if self.label == '만족' :
+            pass
+        elif self.Detect_bin == 'LCO 3.4.1':
+            self.Diagnosis_bin = ['LCO 3.4.1', 0]
+        else :
+            print('??')
+
+    def Suggest(self):
+
+        if self.label == '만족':
+            pass
+        elif self.Diagnosis_bin[0] == 'LCO 3.4.1' and self.Diagnosis_bin[1] == 0 :
+            self.parameters1 = 'ZINST65'
+            self.value1 = '154.7 < ZINST65 < 161.1'
+            self.parameters2 = 'UCOLEG1,2,3'
+            self.value2 = '286.7 < UCOLEG1 < 293.3'
+        else :
+            print('??')
+
+    def text(self):
+        with open('./data.save.txt', 'a') as f:
+
+            if self.label == '만족':
+                print_out_value = [self.number, self.mem['ZINST65']['Val'], self.mem['UCOLEG1']['Val'], self.label]
+                for i in print_out_value[:]:
+                    f.write('{}\t'.format(i))
+            else :
+                print_out_value = [self.number, self.mem['ZINST65']['Val'], self.mem['UCOLEG1']['Val'], self.label,
+                                   self.Detect_bin, self.parameters1, self.value1, self.parameters2, self.value2]
+                for i in print_out_value[:]:
+                    f.write('{}\t'.format(i))
+
 
 if __name__ == '__main__':
 
@@ -164,3 +212,4 @@ if __name__ == '__main__':
     test.reset()
 
     test.make_gp()
+    test.write()

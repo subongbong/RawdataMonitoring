@@ -9,6 +9,7 @@ Class name  : Data share
 Ver         : Ver 0
 Release     : 2018 - 07 -06
 Developer   : Deail Lee
+
 '''
 
 import socket
@@ -30,7 +31,11 @@ class DataShare:
         self.number = 0             ##
 
         self.result=[]
-        self.data = []
+        self.trigger = True
+        self.Detection_signal = 0
+        self.ActionPlanning_signal = 0
+        self.timer1 = 0
+        self.timer1_signal = False
 
         self.fig = plt.figure()
         self.ax1 = self.fig.add_subplot(3, 1, 1)
@@ -76,11 +81,10 @@ class DataShare:
         self.list_mem_number.append(self.number)
 
         #self.test()
-        self.RCS_PTcold()
-        self.Detect()
-        self.Diagnosis()
-        self.Suggest()
-        self.text()
+        self.Detection()
+        self.ActionPlanning()
+        # self.timer1 += 1
+
         self.number += 1
 
         # 3. 이전의 그렸던 그래프를 지우는거야.
@@ -145,81 +149,64 @@ class DataShare:
                 self.mem[temp_[0]] = {'Sig': sig, 'Val': 0, 'Num': idx}
                 self.list_mem[temp_[0]] = {'Sig': sig, 'Val': [], 'Num': idx}
                 idx += 1
-    def RCS_PTcold(self):
-        subdata=[]
 
-        Pressure = self.mem['ZINST65']['Val']
-        subdata.append(self.mem['ZINST65']['Val'])
-        Temp_cold= self.mem['UCOLEG1']['Val']
-        subdata.append(self.mem['UCOLEG1']['Val'])
+    def Detection(self):
 
-        if 154.7 < Pressure <  161.6 and 286.7 < Temp_cold < 293.3:
-          self.result.append(1)
-          self.label = '만족'
-          return subdata.append(1), subdata.append('RCS_PTcold'), self.data.append(subdata)
-        else :
-          self.result.append(0)
-          self.label = '불만족'
-          return subdata.append(0), subdata.append('RCS_PTcold'), self.data.append(subdata)
+        if self.trigger == True :
 
-    def write(self):
-        print(self.data)
-
-    def Detect(self):
-        print(self.data[-1][3])
-        print(self.data[-1][2])
-        if self.data[-1][2] ==0 and self.data[-1][3] == 'RCS_PTcold':
-            self.Detect_bin = 'LCO 3.4.1'
-        # elif
-        else :
-            print('??')
-
-    def Diagnosis(self):
-
-        if self.label == '만족' :
-            pass
-        elif self.Detect_bin == 'LCO 3.4.1':
-            self.Diagnosis_bin = ['LCO 3.4.1', 0]
-        else :
-            print('??')
-
-    def Suggest(self):
-
-        if self.label == '만족':
-            pass
-        elif self.Diagnosis_bin[0] == 'LCO 3.4.1' and self.Diagnosis_bin[1] == 0 :
-            self.parameters1 = 'ZINST65'
-            self.requirement1 = '154.7 < ZINST65 < 161.1'
-            self.parameters2 = 'UCOLEG1,2,3'
-            self.requirement1_1 = '286.7 < UCOLEG1 < 293.3'
-            self.suggest=1
-        else :
-            print('??')
-
-    def Requirement1(self):
-
-        if self.label == '만족':
-            pass
-        elif self.suggest==1:
-            if 154.7 < self.mem['ZINST65']['Val'] <  161.6 and 286.7 < self.mem['UCOLEG1']['Val'] < 293.3:
+            if 154.7 < self.mem['ZINST65']['Val'] <  161.6 and 286.7 < self.mem['UCOLEG1']['Val'] < 293.3 :
                 self.result.append(1)
             else:
                 self.result.append(0)
+                self.Detection_signal = 1
+                print(self.ActionPlanning_signal)
+                # self.trigger.append(0)
+        elif self.ActionPlanning_signal == 1 :
+            if self.timer1_signal == True :
+                self.timer1 += 1
 
-    def text(self):
-        with open('./data.save.txt', 'a') as f:
 
-            if self.label == '만족':
-                print_out_value = [self.number, self.mem['ZINST65']['Val'], self.mem['UCOLEG1']['Val'], self.label]
-                for i in print_out_value[:-1]:
-                    f.write('{}\t'.format(i))
-                f.write('{}\n'.format(print_out_value[-1]))
-            else :
-                print_out_value = [self.number, self.mem['ZINST65']['Val'], self.mem['UCOLEG1']['Val'], self.label,
-                                   self.Detect_bin, self.parameters1, self.requirement1, self.parameters2, self.requirement1_1]
-                for i in print_out_value[:-1]:
-                    f.write('{}\t'.format(i))
-                f.write('{}\n'.format(print_out_value[-1]))
+            if 154.7 < self.mem['ZINST65']['Val'] <  161.6 and 286.7 < self.mem['UCOLEG1']['Val'] < 293.3 :
+                if self.timer1 < 180 :
+                    print('복구 성공')
+                    print(self.timer1)
+                    self.result.append(1)
+                else :
+                    print('소용없어.')
+                    print(self.timer1)
+                    self.result.append(0)
+                    self.Detection_signal = 2
+            else:
+                if self.timer1 < 180 :
+                    print('초는 멀쩡해유')
+                    self.result.append(0)
+                    self.Detection_signal = 0
+                    print(self.timer1)
+                else:
+                    print('시간도 초과했따')
+                    self.result.append(0)
+                    self.Detection_signal = 2
+            # elif self.mem['ZINST65']['Val'] >  161.6 and self.mem['ZINST65']['Val'] < 154.7 and self.mem['UCOLEG1']['Val'] > 293.3 and self.mem['UCOLEG1']['Val'] < 286.7 :
+            #     print('왓냐왓냐')
+            #     self.result.append(0)
+            #     self.Detection_signal = 0
+            # elif self.mem['ZINST65']['Val'] >  161.6 and self.mem['ZINST65']['Val'] < 154.7 and self.mem['UCOLEG1']['Val'] > 293.3 and self.mem['UCOLEG1']['Val'] < 286.7 and self.timer1 > 180 :
+            #     self.result.append(0)
+            #     self.Detection_signal = 2
+            #     print('여기 온건가???')
+
+    def ActionPlanning(self):
+
+        if self.Detection_signal == 1 :
+            print('신호 잘옴.')
+            self.trigger = False
+            self.ActionPlanning_signal = 1
+            self.timer1_signal = True
+
+        else :
+            print('pass')
+            pass
+
 
 
 if __name__ == '__main__':
@@ -229,4 +216,3 @@ if __name__ == '__main__':
     test.reset()
 
     test.make_gp()
-    test.write()

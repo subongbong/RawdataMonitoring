@@ -189,6 +189,10 @@ class DataShare:
                     self.result.append(0)
                     self.Detection_signal = 2
 
+        elif self.ActionPlanning_signal == 2 :
+
+
+
 
     def ActionPlanning(self):
 
@@ -201,7 +205,7 @@ class DataShare:
         elif self.Detection_signal == 2:
             print('운전모드 신호 줘라')
             self.trigger = False
-
+            self.ActionPlanning_signal = 2 # action signal을 2로 지정함. 'Detection'에서 운전모드 감시할 수 있도록.
         else :
             print('pass')
             pass

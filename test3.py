@@ -210,6 +210,34 @@ class DataShare:
             print('pass')
             pass
 
+    def Monitoring(self):
+
+        # TermalPower = para.ThermalPower KBCDO23
+        # Reactivity = para.Reactivity self.mem['CRETIV']['Val']
+        # AvgTemp = para.Reactivity UCOLEG1
+
+        if self.mem['CRETIV']['Val'] >= 0.99:
+
+            if self.mem['KBCDO23']['Val'] > 5:
+                print('운전모드1')
+
+            elif self.mem['KBCDO23']['Val'] <= 5:
+                print('운전모드2')
+
+        elif self.mem['CRETIV']['Val'] < 0.99:
+
+            if self.mem['UCOLEG1']['Val'] >= 350:
+                print('운전모드3')
+
+            elif 200 < self.mem['UCOLEG1']['Val'] < 350:
+                print('운전모드4')
+
+            elif self.mem['UCOLEG1']['Val'] <= 200:
+                print('운전모드5')
+
+        else:
+            print('운전모드6')
+
 
 
 if __name__ == '__main__':

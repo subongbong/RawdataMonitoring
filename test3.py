@@ -191,7 +191,17 @@ class DataShare:
 
         elif self.ActionPlanning_signal == 2 :
 
+            A = self.Monitoring()
+            print('여기까지 왔음?')
 
+            if A == '운전모드2' :
+                self.result.append(1)
+
+            elif A == '운전모드1' :
+                self.result.append(0)
+
+            else :
+                self.result.append(0)
 
 
     def ActionPlanning(self):

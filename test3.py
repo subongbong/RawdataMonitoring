@@ -35,7 +35,9 @@ class DataShare:
         self.Detection_signal = 0
         self.ActionPlanning_signal = 0
         self.timer1 = 0
+        self.timer2 = 0
         self.timer1_signal = False
+        self.timer2_signal = False
 
         self.fig = plt.figure()
         self.ax1 = self.fig.add_subplot(3, 1, 1)
@@ -191,17 +193,20 @@ class DataShare:
 
         elif self.ActionPlanning_signal == 2 :
 
+
+            # if self.timer2_signal == True :
+            #     self.timer2 += 1
+
             A = self.Monitoring()
-            print('여기까지 왔음?')
+            print(A)
+            print(self.mem['CRETIV']['Val'])
 
-            if A == '운전모드2' :
+            if A == 2 :
                 self.result.append(1)
-
-            elif A == '운전모드1' :
-                self.result.append(0)
 
             else :
                 self.result.append(0)
+                print('여기임?')
 
 
     def ActionPlanning(self):
@@ -216,6 +221,7 @@ class DataShare:
             print('운전모드 신호 줘라')
             self.trigger = False
             self.ActionPlanning_signal = 2 # action signal을 2로 지정함. 'Detection'에서 운전모드 감시할 수 있도록.
+            # self.timer2_signal = True
         else :
             print('pass')
             pass
@@ -226,27 +232,27 @@ class DataShare:
         # Reactivity = para.Reactivity self.mem['CRETIV']['Val']
         # AvgTemp = para.Reactivity UCOLEG1
 
-        if self.mem['CRETIV']['Val'] >= 0.99:
+        if self.mem['CRETIV']['Val'] >= 0:
 
             if self.mem['KBCDO23']['Val'] > 5:
-                print('운전모드1')
+                print('1')
 
             elif self.mem['KBCDO23']['Val'] <= 5:
-                print('운전모드2')
+                print('2')
 
-        elif self.mem['CRETIV']['Val'] < 0.99:
+        elif self.mem['CRETIV']['Val'] < 0 :
 
             if self.mem['UCOLEG1']['Val'] >= 350:
-                print('운전모드3')
+                print('3')
 
             elif 200 < self.mem['UCOLEG1']['Val'] < 350:
-                print('운전모드4')
+                print('4')
 
             elif self.mem['UCOLEG1']['Val'] <= 200:
-                print('운전모드5')
+                print('5')
 
         else:
-            print('운전모드6')
+            print('6')
 
 
 
@@ -257,3 +263,4 @@ if __name__ == '__main__':
     test.reset()
 
     test.make_gp()
+    print(test.result[-1])
